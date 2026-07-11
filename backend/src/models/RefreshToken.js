@@ -47,6 +47,7 @@ const refreshTokenSchema = new mongoose.Schema(
   }
 );
 
+// Automatically purge expired refresh tokens from the collection
 refreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 refreshTokenSchema.methods.revoke = function revoke(replacedByTokenHash = null) {

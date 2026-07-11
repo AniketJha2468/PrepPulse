@@ -92,6 +92,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// Ensure OAuth accounts are uniquely identified per provider
 userSchema.index(
   { authProvider: 1, providerId: 1 },
   {
