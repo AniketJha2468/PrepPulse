@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const compression = require('compression');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const passport = require('./config/passport');
 
 const env = require('./config/env');
 const routes = require('./routes');
@@ -35,6 +36,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Cookie parser
 app.use(cookieParser());
+
+// Passport (stateless - session: false is used on every strategy call)
+app.use(passport.initialize());
 
 // API routes
 app.use('/api', routes);

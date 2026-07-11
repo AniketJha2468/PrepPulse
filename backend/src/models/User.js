@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const { USER_ROLES, USER_ROLE_VALUES } = require('../constants/roles.constants');
 const { ACCOUNT_STATUS, ACCOUNT_STATUS_VALUES } = require('../constants/accountStatus.constants');
@@ -82,6 +83,16 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    passwordResetTokenHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+      default: null,
+      select: false,
+    },
     lastLoginAt: {
       type: Date,
       default: null,
@@ -131,11 +142,27 @@ userSchema.methods.changedPasswordAfter = function changedPasswordAfter(tokenIss
   return tokenIssuedAtSeconds < changedTimestamp;
 };
 
+userSchema.methods.generatePasswordResetToken = function generatePasswordResetToken(
+  expiresInMinutes
+) {
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetTokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  this.passwordResetExpires = new Date(Date.now() + expiresInMinutes * 60 * 1000);
+  return rawToken;
+};
+
+userSchema.methods.clearPasswordResetToken = function clearPasswordResetToken() {
+  this.passwordResetTokenHash = null;
+  this.passwordResetExpires = null;
+};
+
 userSchema.methods.toSafeObject = function toSafeObject() {
   const userObject = this.toObject();
   delete userObject.password;
   delete userObject.providerId;
   delete userObject.passwordChangedAt;
+  delete userObject.passwordResetTokenHash;
+  delete userObject.passwordResetExpires;
   delete userObject.__v;
   return userObject;
 };
